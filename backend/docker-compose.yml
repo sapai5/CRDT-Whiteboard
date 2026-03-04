@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+
+  # ── Auth Service ────────────────────────────────────────────────────────────
+  auth-service:
+    build: ./auth-service
+    container_name: wb_auth
+    ports:
+      - "8001:8001"
+    env_file: .env
+    environment:
+      - SERVICE_PORT=8001
+    networks:
+      - whiteboard-net
+    restart: unless-stopped
+
+  # ── Room Service ────────────────────────────────────────────────────────────
+  room-service:
+    build: ./room-service
+    container_name: wb_room
+    ports:
+      - "8002:8002"
+    env_file: .env
+    environment:
+      - SERVICE_PORT=8002
+      - AUTH_SERVICE_URL=http://auth-service:8001
+    networks:
+      - whiteboard-net
+    depends_on:
+      - auth-service
+    restart: unless-stopped
+
+  # ── CRDT Sync Service ───────────────────────────────────────────────────────
+  crdt-sync-service:
+    build: ./crdt-sync-service
+    container_name: wb_crdt
+    ports:
+      - "8003:8003"
+    env_file: .env
+    environment:
+      - SERVICE_PORT=8003
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - ROOM_SERVICE_URL=http://room-service:8002
+      - PERSISTENCE_SERVICE_URL=http://persistence-service:8004
+    networks:
+      - whiteboard-net
+    depends_on:
+      - auth-service
+      - room-service
+    restart: unless-stopped
+
+  # ── Persistence Service ─────────────────────────────────────────────────────
+  persistence-service:
+    build: ./persistence-service
+    container_name: wb_persistence
+    ports:
+      - "8004:8004"
+    env_file: .env
+    environment:
+      - SERVICE_PORT=8004
+      - AUTH_SERVICE_URL=http://auth-service:8001
+    volumes:
+      - persistence-data:/app/data
+    networks:
+      - whiteboard-net
+    depends_on:
+      - auth-service
+    restart: unless-stopped
+
+volumes:
+  persistence-data:
+
+networks:
+  whiteboard-net:
+    driver: bridge
