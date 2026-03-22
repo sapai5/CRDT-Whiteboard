@@ -23,4 +23,9 @@ async def require_bearer_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Authorization header. Expected 'Bearer <token>'.",
         )
+    # the format checker
+    if token.count(".") != 2:
+        raise HTTPException(
+            statusCode = status.HTTP_401_UNAUTHORIZED, detail="Malformed token.",
+        )
     return token
