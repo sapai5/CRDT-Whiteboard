@@ -25,7 +25,7 @@ app = FastAPI(
 )
 #tables first
 from app.db import init_db
-@app.on_evemt("begin")
+@app.on_event("startup")
 async def begin():
     init_db()
 

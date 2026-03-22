@@ -1,6 +1,8 @@
 """app/models/schemas.py — Auth Service request/response schemas."""
+from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -28,6 +30,11 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+class UpdateProfileRequest(BaseModel):
+    display_name: Optional[str] = Field(None, min_length=1, max_length=64)
+    avatar_url: Optional[str] = None
+
+
 # ── Responses ─────────────────────────────────────────────────────────────────
 
 class TokenPair(BaseModel):
@@ -41,12 +48,12 @@ class UserResponse(BaseModel):
     user_id: UUID
     email: EmailStr
     display_name: str
-    avatar_url: str | None = None
+    avatar_url: Optional[str] = None
     created_at: datetime
 
 
 class ValidateTokenResponse(BaseModel):
     valid: bool
-    user_id: UUID | None = None
-    email: str | None = None
-    display_name: str | None = None
+    user_id: Optional[UUID] = None
+    email: Optional[str] = None
+    display_name: Optional[str] = None

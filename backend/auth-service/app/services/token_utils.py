@@ -8,18 +8,17 @@ JWT creation, verification, and access token blocklist.
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from app.config import settings
 
-#Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash_password(plain: str) -> str:
     """Return a bcrypt hash of the given plaintext password."""
-    return pwd_context.hash(plain)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(plain.encode("utf-8"), salt).decode("utf-8")
 
 def verify_password(plain: str, hashed: str) -> bool:
     """Return True if plain matches the bcrypt hash."""
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 #Token creation
 def create_access_token(user_id: str, email: str, display_name: str) -> tuple[str, int]:

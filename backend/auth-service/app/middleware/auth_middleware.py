@@ -5,27 +5,25 @@ Dependency used by protected routes to extract and forward
 the bearer token from the Authorization header.
 """
 
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+security = HTTPBearer()
 
 async def require_bearer_token(
-    authorization: str = Header(..., alias="Authorization"),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> str:
     """
-    Extract a Bearer token from the Authorization header.
-
-    TODO:
-      - Optionally pre-validate format here before hitting AuthService
+    Extract a Bearer token from the Authorization header using FastAPI's native HTTPBearer.
+    This natively binds to Swagger UI's "Authorize" button and auto-extracts the token.
     """
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Authorization header. Expected 'Bearer <token>'.",
-        )
+    token = credentials.credentials
+    
     # the format checker
     if token.count(".") != 2:
         raise HTTPException(
-            statusCode = status.HTTP_401_UNAUTHORIZED, detail="Malformed token.",
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Malformed token.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return token
