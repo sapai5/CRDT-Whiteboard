@@ -23,6 +23,11 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+#tables first
+from app.db import init_db
+@app.on_evemt("begin")
+async def begin():
+    init_db()
 
 app.add_middleware(
     CORSMiddleware,
